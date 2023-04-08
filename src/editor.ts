@@ -4,6 +4,7 @@ import Markdown from 'markdown-it'
 import matter from 'gray-matter'
 import { ctx } from './ctx'
 import { PreviewProvider } from './view/PreviewProvider'
+import { ValaxyProvider } from './view/ValaxyProvider'
 
 export function configEditor() {
   const previewProvider = new PreviewProvider()
@@ -43,14 +44,30 @@ export function configEditor() {
     ),
   )
 
-  // const provider = new ValaxyProvider()
+  const provider = new ValaxyProvider()
 
-  // window.createTreeView('valaxy-post', {
-  //   treeDataProvider: provider,
-  //   showCollapseAll: true,
-  // })
+  window.createTreeView('valaxy-posts', {
+    treeDataProvider: provider,
+    showCollapseAll: true,
+  })
 
   commands.registerCommand('valaxy.preview-refresh', previewProvider.refresh.bind(previewProvider))
+
+  registerCommands()
+
+  // languages.registerFoldingRangeProvider({ language: 'markdown' }, new FoldingProvider())
+
+  ctx.onDataUpdate(() => provider.refresh())
+
+  update()
+}
+
+function registerCommands() {
+  commands.registerCommand('valaxy.open-file', async (path: string) => {
+    workspace.openTextDocument(path).then((doc) => {
+      window.showTextDocument(doc)
+    })
+  })
 
   commands.registerCommand('valaxy.markdown-to-html', async () => {
     const editor = window.activeTextEditor
@@ -70,10 +87,4 @@ export function configEditor() {
       edit.replace(range, html)
     })
   })
-
-  // languages.registerFoldingRangeProvider({ language: 'markdown' }, new FoldingProvider())
-
-  // ctx.onDataUpdate(() => provider.refresh())
-
-  update()
 }

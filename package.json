@@ -46,6 +46,14 @@
     "release": "bumpp && nr publish"
   }, 
   "contributes": {
+    "command": [
+      {
+        "command": "valaxy.preview-refresh",
+        "category": "Valaxy",
+        "title": "Preview Refresh",
+        "icon": "$(refresh)"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Valaxy",
@@ -77,8 +85,8 @@
     "views": {
       "valaxy": [
         {
-          "id": "valaxy-post",
-          "name": "Valaxy Post",
+          "id": "valaxy-posts",
+          "name": "Valaxy Posts",
           "when": "valaxy-enabled"
         },
         {

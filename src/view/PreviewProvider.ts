@@ -1,6 +1,5 @@
 import type { WebviewView, WebviewViewProvider } from 'vscode'
 import { window } from 'vscode'
-// import axios from 'axios'
 import { ctx } from '../ctx'
 import { config, setConfig } from '../config'
 import { isDarkTheme } from '../utils'
@@ -92,13 +91,6 @@ code {
   <div style="text-align: center"><p>Valaxy server is not found on <code>${serverAddr}</code></p><p>please run <code style="color: #679bbb">$ valaxy</code> first</p><br><button onclick="configPort()">Config Server Port</button></div>
 </body>
 `
-
-    try {
-      // await axios.get(`${serverAddr}index.html`, { responseType: 'text' })
-    }
-    catch {
-      return
-    }
 
     this.view.webview.html = `
 <head>
