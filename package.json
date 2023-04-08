@@ -2,7 +2,7 @@
   "publisher": "YunYouJun",
   "name": "valaxy",
   "displayName": "Valaxy",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "private": true,
   "packageManager": "pnpm@8.1.1",
   "description": "",
@@ -44,7 +44,7 @@
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "release": "bumpp && nr publish"
-  }, 
+  },
   "contributes": {
     "command": [
       {
