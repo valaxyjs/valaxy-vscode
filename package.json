@@ -1,6 +1,6 @@
 {
   "publisher": "YunYouJun",
-  "name": "valaxy-vscode",
+  "name": "valaxy",
   "displayName": "Valaxy",
   "version": "0.0.0",
   "private": true,
@@ -44,19 +44,68 @@
     "test": "vitest",
     "typecheck": "tsc --noEmit",
     "release": "bumpp && nr publish"
+  }, 
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Valaxy",
+      "properties": {
+        "valaxy.enabled": {
+          "type": "boolean",
+          "scope": "window",
+          "description": "Force enable extension",
+          "default": false
+        },
+        "valaxy.port": {
+          "type": "number",
+          "scope": "window",
+          "description": "The port of Valaxy server",
+          "default": 4859
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "valaxy",
+          "title": "Valaxy",
+          "icon": "res/logo.svg",
+          "when": "valaxy-enabled"
+        }
+      ]
+    },
+    "views": {
+      "valaxy": [
+        {
+          "id": "valaxy-post",
+          "name": "Valaxy Post",
+          "when": "valaxy-enabled"
+        },
+        {
+          "type": "webview",
+          "id": "valaxy-preview",
+          "name": "Preview",
+          "when": "valaxy-enabled"
+        }
+      ]
+    }
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.38.4",
     "@antfu/ni": "^0.21.2",
+    "@types/markdown-it": "^12.2.3",
     "@types/node": "^18.15.11",
     "@types/vscode": "^1.77.0",
+    "axios": "^1.3.5",
     "bumpp": "^9.1.0",
     "eslint": "^8.37.0",
     "esno": "^0.16.3",
+    "gray-matter": "^4.0.3",
     "pnpm": "^8.1.1",
     "rimraf": "^4.4.1",
     "tsup": "^6.7.0",
     "typescript": "^5.0.3",
+    "valaxy": "^0.14.25",
     "vite": "^4.2.1",
     "vitest": "^0.29.8",
     "vsce": "^2.15.0"
