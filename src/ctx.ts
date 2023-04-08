@@ -1,5 +1,5 @@
 import type { ExtensionContext, TextDocument } from 'vscode'
-import type { Post } from 'valaxy/types'
+import type { Post } from 'valaxy/types/posts'
 import { EventEmitter } from 'vscode'
 import type { PostInfo } from './types'
 
