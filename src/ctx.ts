@@ -1,14 +1,10 @@
 import type { ExtensionContext, TextDocument } from 'vscode'
-import type { Post } from 'valaxy/types/posts'
 import { EventEmitter } from 'vscode'
 import type { PostInfo } from './types'
 
-// frontmatter
-export type ValaxyMdData = Post | undefined
-
 export class Context {
-  private _onDataUpdate = new EventEmitter<ValaxyMdData>()
-  private _data: ValaxyMdData
+  private _onDataUpdate = new EventEmitter<PostInfo['frontmatter']>()
+  private _data: PostInfo['frontmatter'] = {}
 
   onDataUpdate = this._onDataUpdate.event
 
@@ -27,13 +23,39 @@ export class Context {
     return this._data
   }
 
-  set data(data: ValaxyMdData) {
+  set data(data: PostInfo['frontmatter']) {
     this._data = data
     this._onDataUpdate.fire(data)
+
+    this.updatePosts(data)
   }
 
   get subscriptions() {
     return this.ext.subscriptions
+  }
+
+  updatePosts(data: PostInfo['frontmatter']) {
+    if (this.posts.length === 0)
+      return
+    const existPost = this.posts.find(p => p.path === this.doc?.uri.fsPath)
+    if (existPost) {
+      existPost.frontmatter = data
+    }
+    else {
+      this.posts.push({
+        frontmatter: data,
+        path: this.doc?.uri.fsPath || '',
+      })
+      this.sortPosts()
+    }
+  }
+
+  sortPosts() {
+    this.posts.sort((a, b) => {
+      const aDate = new Date(a.frontmatter.updated || a.frontmatter.date || Date.now())
+      const bDate = new Date(b.frontmatter.updated || b.frontmatter.date || Date.now())
+      return bDate.getTime() - aDate.getTime()
+    })
   }
 }
 

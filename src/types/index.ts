@@ -1,5 +1,7 @@
+import type { Post } from 'valaxy/types/posts'
+
 export interface PostInfo {
-  frontmatter: Record<string, any>
+  frontmatter: Post
   /**
    * file path
    */

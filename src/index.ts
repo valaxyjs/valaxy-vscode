@@ -49,11 +49,7 @@ export async function activate(ext: ExtensionContext) {
         })
       })
       await Promise.all(mdPromiseTasks)
-      ctx.posts.sort((a, b) => {
-        const aDate = new Date(a.frontmatter.updated || a.frontmatter.date)
-        const bDate = new Date(b.frontmatter.updated || b.frontmatter.date)
-        return bDate.getTime() - aDate.getTime()
-      })
+      ctx.sortPosts()
     }
   }
 }

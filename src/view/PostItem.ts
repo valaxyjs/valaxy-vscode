@@ -28,10 +28,12 @@ export class PostItem implements TreeItem {
         break
     }
 
+    if (info.frontmatter.draft)
+      this.iconPath = ctx.ext.asAbsolutePath('./res/icons/ri-draft-line.svg')
+
     if (info.frontmatter.hide) {
       this.iconPath = ctx.ext.asAbsolutePath('./res/icons/ri-eye-off-line.svg')
       this.description = info.frontmatter.description || info.frontmatter.excerpt
-      this.label = ''
     }
   }
 }
