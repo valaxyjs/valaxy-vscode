@@ -35,14 +35,29 @@
     "onStartupFinished"
   ],
   "contributes": {
-    "command": [
+    "commands": [
       {
         "command": "valaxy.preview-refresh",
         "category": "Valaxy",
         "title": "Preview Refresh",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "valaxy.delete-post",
+        "category": "Valaxy",
+        "title": "Delete post",
+        "icon": "$(trash)"
       }
     ],
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "valaxy.delete-post",
+          "when": "view =~ /valaxy-posts/",
+          "group": "inline@1"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "Valaxy",
@@ -58,6 +73,18 @@
           "scope": "window",
           "description": "The port of Valaxy server",
           "default": 4859
+        },
+        "valaxy.postsFolder": {
+          "type": "string",
+          "scope": "window",
+          "description": "The folder of your posts",
+          "default": "pages/posts"
+        },
+        "valaxy.confirmDelete": {
+          "type": "boolean",
+          "scope": "window",
+          "description": "Confirm before deleting a post",
+          "default": false
         }
       }
     },

@@ -37,17 +37,21 @@ export class Context {
   updatePosts(data: PostInfo['frontmatter']) {
     if (this.posts.length === 0)
       return
+
     const existPost = this.posts.find(p => p.path === this.doc?.uri.fsPath)
-    if (existPost) {
+    if (existPost)
       existPost.frontmatter = data
-    }
-    else {
-      this.posts.push({
-        frontmatter: data,
-        path: this.doc?.uri.fsPath || '',
-      })
-      this.sortPosts()
-    }
+  }
+
+  addPost(post: PostInfo) {
+    this.posts.push(post)
+    this.sortPosts()
+  }
+
+  deletePost(path: string) {
+    const index = this.posts.findIndex(p => p.path === path)
+    if (index > -1)
+      this.posts.splice(index, 1)
   }
 
   sortPosts() {

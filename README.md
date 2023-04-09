@@ -11,6 +11,10 @@
   </a>
 </p>
 
+## Todo
+
+- [ ] albums edit
+
 ## License
 
 [MIT](./LICENSE) License © 2023 [YunYouJun](https://github.com/YunYouJun)

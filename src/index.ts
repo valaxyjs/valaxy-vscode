@@ -21,7 +21,7 @@ export async function activate(ext: ExtensionContext) {
     return
 
   ctx.userRoot = userRoot
-  ctx.postsRoot = join(userRoot, 'pages/posts')
+  ctx.postsRoot = join(userRoot, config.postsFolder || 'pages/posts')
 
   let enabled = config.enabled
 

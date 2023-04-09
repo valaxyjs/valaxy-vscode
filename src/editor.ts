@@ -1,10 +1,13 @@
 import fs from 'node:fs/promises'
-import { commands, window, workspace } from 'vscode'
+import { join } from 'node:path'
+import { Uri, commands, window, workspace } from 'vscode'
 import Markdown from 'markdown-it'
 import matter from 'gray-matter'
 import { ctx } from './ctx'
 import { PreviewProvider } from './view/PreviewProvider'
 import { ValaxyProvider } from './view/ValaxyProvider'
+import { config } from './config'
+import type { PostItem } from './view/PostItem'
 
 export function configEditor() {
   const previewProvider = new PreviewProvider()
@@ -25,7 +28,16 @@ export function configEditor() {
     ctx.data = data
   }
 
-  workspace.createFileSystemWatcher('**/*.md', true, false)
+  const mdWatcher = workspace.createFileSystemWatcher(join(config.postsFolder, '**/*.md'), true, false)
+  mdWatcher.onDidCreate(async (uri) => {
+    const text = await fs.readFile(uri.fsPath, 'utf-8')
+    const { data } = matter(text)
+    ctx.addPost({
+      frontmatter: data,
+      path: uri.fsPath,
+    })
+  })
+  mdWatcher
     .onDidChange(async (uri) => {
       if (uri.fsPath === ctx.doc?.uri.fsPath) {
         const text = await fs.readFile(uri.fsPath, 'utf-8')
@@ -33,6 +45,10 @@ export function configEditor() {
         ctx.data = data
       }
     })
+  mdWatcher.onDidDelete(async (uri) => {
+    console.log('ondelete', uri.fsPath)
+    ctx.deletePost(uri.fsPath)
+  })
 
   ctx.subscriptions.push(
     workspace.onDidSaveTextDocument(update),
@@ -67,6 +83,17 @@ function registerCommands() {
     workspace.openTextDocument(path).then((doc) => {
       window.showTextDocument(doc)
     })
+  })
+
+  commands.registerCommand('valaxy.delete-post', async (item: PostItem) => {
+    let canDelete = true
+    if (config.confirmDelete) {
+      const answer = await window.showWarningMessage(`Delete 「${item.label}」?`, 'Yes', 'No')
+      if (answer !== 'Yes')
+        canDelete = false
+    }
+    if (canDelete)
+      workspace.fs.delete(Uri.file(item.info.path))
   })
 
   commands.registerCommand('valaxy.markdown-to-html', async () => {

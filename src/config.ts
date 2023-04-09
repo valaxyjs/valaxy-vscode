@@ -11,8 +11,17 @@ export function setConfig<T>(key: string, v?: T) {
 export interface Config {
   root: string
   port: number
+  /**
+   * The folder name of the posts (relative to the workspace root)
+   * @default 'pages/posts'
+   */
+  postsFolder: string
+  /**
+   * confirm when deleting a post
+   * @default false
+   */
+  confirmDelete: boolean
   enabled: boolean
-  annotations: boolean
 }
 
 export const config = new Proxy(

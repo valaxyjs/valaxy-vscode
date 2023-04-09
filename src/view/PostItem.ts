@@ -10,8 +10,6 @@ export class PostItem implements TreeItem {
   command?: Command
 
   constructor(public readonly info: PostInfo) {
-    // this.label = `${info.index + 1} - ${info.title || ''}`
-
     this.command = {
       command: 'valaxy.open-file',
       title: 'Open File',
@@ -25,6 +23,12 @@ export class PostItem implements TreeItem {
       case '':
       case 'post':
         this.iconPath = ctx.ext.asAbsolutePath('./res/icons/ri-file-text-line.svg')
+        break
+      case 'page':
+        this.iconPath = ctx.ext.asAbsolutePath('./res/icons/ri-pages-line.svg')
+        break
+      case '404':
+        this.iconPath = ctx.ext.asAbsolutePath('./res/icons/ri-error-warning-line.svg')
         break
     }
 
