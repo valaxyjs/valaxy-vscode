@@ -1,5 +1,7 @@
-import type { ExtensionContext, TextDocument } from 'vscode'
+import { promises as fs } from 'node:fs'
+import type { ExtensionContext, TextDocument, Uri } from 'vscode'
 import { EventEmitter } from 'vscode'
+import matter from 'gray-matter'
 import type { PostInfo } from './types'
 
 export class Context {
@@ -26,25 +28,38 @@ export class Context {
   set data(data: PostInfo['frontmatter']) {
     this._data = data
     this._onDataUpdate.fire(data)
-
-    this.updatePosts(data)
   }
 
   get subscriptions() {
     return this.ext.subscriptions
   }
 
-  updatePosts(data: PostInfo['frontmatter']) {
+  async updatePosts(uri: Uri) {
     if (this.posts.length === 0)
       return
 
     const existPost = this.posts.find(p => p.path === this.doc?.uri.fsPath)
-    if (existPost)
-      existPost.frontmatter = data
+    if (existPost) {
+      const { frontmatter } = await this.readPost(uri)
+      existPost.frontmatter = frontmatter
+
+      // trigger refresh
+      this.data = frontmatter
+    }
+    else { this.addPost(uri) }
   }
 
-  addPost(post: PostInfo) {
-    this.posts.push(post)
+  async readPost(uri: Uri): Promise<PostInfo> {
+    const text = await fs.readFile(uri.fsPath, 'utf-8')
+    const { data } = matter(text)
+    return {
+      frontmatter: data,
+      path: uri.fsPath,
+    }
+  }
+
+  async addPost(uri: Uri) {
+    this.posts.push(await this.readPost(uri))
     this.sortPosts()
   }
 

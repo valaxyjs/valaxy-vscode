@@ -37,6 +37,12 @@
   "contributes": {
     "commands": [
       {
+        "command": "valaxy.refreshPosts",
+        "category": "Valaxy",
+        "title": "Refresh Posts",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "valaxy.preview-refresh",
         "category": "Valaxy",
         "title": "Preview Refresh",
@@ -45,16 +51,32 @@
       {
         "command": "valaxy.delete-post",
         "category": "Valaxy",
-        "title": "Delete post",
+        "title": "Delete Post",
         "icon": "$(trash)"
       }
     ],
     "menus": {
+      "view/title": [
+        {
+          "command": "valaxy.refreshPosts",
+          "when": "view =~ /valaxy-posts/",
+          "group": "navigation"
+        },
+        {
+          "command": "valaxy.preview-refresh",
+          "when": "view =~ /valaxy-preview/",
+          "group": "navigation"
+        }
+      ],
       "view/item/context": [
         {
           "command": "valaxy.delete-post",
           "when": "view =~ /valaxy-posts/",
           "group": "inline@1"
+        },
+        {
+          "command": "valaxy.delete-post",
+          "when": "view =~ /valaxy-posts/"
         }
       ]
     },

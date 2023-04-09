@@ -1,11 +1,9 @@
-import fs from 'node:fs/promises'
-import { join } from 'node:path'
 import { Uri, commands, window, workspace } from 'vscode'
 import Markdown from 'markdown-it'
 import matter from 'gray-matter'
 import { ctx } from './ctx'
 import { PreviewProvider } from './view/PreviewProvider'
-import { ValaxyProvider } from './view/ValaxyProvider'
+import { PostsProvider } from './view/ValaxyProvider'
 import { config } from './config'
 import type { PostItem } from './view/PostItem'
 
@@ -28,26 +26,21 @@ export function configEditor() {
     ctx.data = data
   }
 
-  const mdWatcher = workspace.createFileSystemWatcher(join(config.postsFolder, '**/*.md'), true, false)
+  const postsProvider = new PostsProvider()
+
+  const mdWatcher = workspace.createFileSystemWatcher('**/*.md')
   mdWatcher.onDidCreate(async (uri) => {
-    const text = await fs.readFile(uri.fsPath, 'utf-8')
-    const { data } = matter(text)
-    ctx.addPost({
-      frontmatter: data,
-      path: uri.fsPath,
-    })
+    await ctx.addPost(uri)
+    postsProvider.refresh()
   })
   mdWatcher
     .onDidChange(async (uri) => {
-      if (uri.fsPath === ctx.doc?.uri.fsPath) {
-        const text = await fs.readFile(uri.fsPath, 'utf-8')
-        const { data } = matter(text)
-        ctx.data = data
-      }
+      if (uri.fsPath === ctx.doc?.uri.fsPath)
+        ctx.updatePosts(uri)
     })
   mdWatcher.onDidDelete(async (uri) => {
-    console.log('ondelete', uri.fsPath)
     ctx.deletePost(uri.fsPath)
+    postsProvider.refresh()
   })
 
   ctx.subscriptions.push(
@@ -60,10 +53,8 @@ export function configEditor() {
     ),
   )
 
-  const provider = new ValaxyProvider()
-
   window.createTreeView('valaxy-posts', {
-    treeDataProvider: provider,
+    treeDataProvider: postsProvider,
     showCollapseAll: true,
   })
 
@@ -73,7 +64,11 @@ export function configEditor() {
 
   // languages.registerFoldingRangeProvider({ language: 'markdown' }, new FoldingProvider())
 
-  ctx.onDataUpdate(() => provider.refresh())
+  ctx.onDataUpdate(() => postsProvider.refresh())
+
+  commands.registerCommand('valaxy.refreshPosts', async () => {
+    postsProvider.refresh()
+  })
 
   update()
 }

@@ -3,7 +3,7 @@ import { EventEmitter } from 'vscode'
 import { ctx } from '../ctx'
 import { PostItem } from './PostItem'
 
-export class ValaxyProvider implements TreeDataProvider<PostItem> {
+export class PostsProvider implements TreeDataProvider<PostItem> {
   private _onDidChangeTreeData = new EventEmitter<PostItem | undefined>()
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event
 
