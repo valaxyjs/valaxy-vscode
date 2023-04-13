@@ -13,7 +13,7 @@ export class PostItem implements TreeItem {
     this.command = {
       command: 'valaxy.open-file',
       title: 'Open File',
-      arguments: [info.path],
+      arguments: [info.uri],
     }
 
     this.label = info.frontmatter.title || 'Untitled'

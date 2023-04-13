@@ -1,4 +1,5 @@
-import { Uri, commands, window, workspace } from 'vscode'
+import type { Uri } from 'vscode'
+import { commands, window, workspace } from 'vscode'
 import Markdown from 'markdown-it'
 import matter from 'gray-matter'
 import { ctx } from './ctx'
@@ -58,7 +59,16 @@ export function configEditor() {
     showCollapseAll: true,
   })
 
-  commands.registerCommand('valaxy.preview-refresh', previewProvider.refresh.bind(previewProvider))
+  commands.registerCommand('valaxy.preview-refresh', () => {
+    previewProvider.refresh()
+  })
+
+  commands.registerCommand('valaxy.open-file', async (uri: Uri) => {
+    workspace.openTextDocument(uri.fsPath).then((doc) => {
+      window.showTextDocument(doc)
+    })
+    previewProvider.goToPath(uri.path)
+  })
 
   registerCommands()
 
@@ -74,12 +84,6 @@ export function configEditor() {
 }
 
 function registerCommands() {
-  commands.registerCommand('valaxy.open-file', async (path: string) => {
-    workspace.openTextDocument(path).then((doc) => {
-      window.showTextDocument(doc)
-    })
-  })
-
   commands.registerCommand('valaxy.delete-post', async (item: PostItem) => {
     let canDelete = true
     if (config.confirmDelete) {
@@ -88,7 +92,7 @@ function registerCommands() {
         canDelete = false
     }
     if (canDelete)
-      workspace.fs.delete(Uri.file(item.info.path))
+      workspace.fs.delete(item.info.uri)
   })
 
   commands.registerCommand('valaxy.markdown-to-html', async () => {

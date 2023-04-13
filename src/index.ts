@@ -1,6 +1,6 @@
 import { existsSync, promises as fs } from 'node:fs'
 import { join } from 'node:path'
-import { commands, window, workspace } from 'vscode'
+import { Uri, commands, window, workspace } from 'vscode'
 import type { ExtensionContext } from 'vscode'
 import matter from 'gray-matter'
 import { config } from './config'
@@ -45,7 +45,7 @@ export async function activate(ext: ExtensionContext) {
         const { data } = matter(content)
         ctx.posts.push({
           frontmatter: data,
-          path,
+          uri: Uri.file(path),
         })
       })
       await Promise.all(mdPromiseTasks)

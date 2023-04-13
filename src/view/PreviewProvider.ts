@@ -1,5 +1,9 @@
+import type { IncomingMessage } from 'node:http'
+import http from 'node:http'
+import { readFile } from 'node:fs/promises'
 import type { WebviewView, WebviewViewProvider } from 'vscode'
 import { window } from 'vscode'
+import consola from 'consola'
 import { ctx } from '../ctx'
 import { config, setConfig } from '../config'
 import { isDarkTheme } from '../utils'
@@ -23,6 +27,17 @@ export class PreviewProvider implements WebviewViewProvider {
       target: 'valaxy',
       type: 'color-schema',
       color: isDarkTheme() ? 'dark' : 'light',
+    })
+  }
+
+  goToPath(path: string) {
+    if (!this.view)
+      return
+
+    this.view.webview.postMessage({
+      target: 'valaxy-preview',
+      type: 'go-to-path',
+      path,
     })
   }
 
@@ -54,75 +69,43 @@ export class PreviewProvider implements WebviewViewProvider {
     const serverAddr = `http://localhost:${config.port}/`
     const url = `${serverAddr}`
 
-    this.view.webview.html = `
-<head>
-  <meta
-    http-equiv="Content-Security-Policy"
-    content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';"
-  />
-<head>
-<script>
-  const vscode = acquireVsCodeApi()
-  window.configPort = () => {
-    vscode.postMessage({
-      command: 'config-port'
-    })
-  }
-</script>
-<style>
-button {
-  background: var(--vscode-button-secondaryBackground);
-  color: var(--vscode-button-secondaryForeground);
-  border: none;
-  padding: 8px 12px;
-}
-button:hover {
-  background: var(--vscode-button-secondaryHoverBackground);
-}
-code {
-  font-size: 0.9em;
-  font-family: var(--vscode-editor-font-family);
-  background: var(--vscode-textBlockQuote-border);
-  border-radius: 4px;
-  padding: 3px 5px;
-}
-</style>
-<body>
-  <div style="text-align: center"><p>Valaxy server is not found on <code>${serverAddr}</code></p><p>please run <code style="color: #679bbb">$ valaxy</code> first</p><br><button onclick="configPort()">Config Server Port</button></div>
-</body>
-`
+    const injectedConfig = [
+      '<script>',
+      `window.CONFIG = { serverAddr: '${serverAddr}', url: '${url}' }`,
+      '</script>',
+    ].join('\n')
 
-    this.view.webview.html = `
-<head>
-  <meta
-    http-equiv="Content-Security-Policy"
-    content="default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';"
-  />
-  <style>
-  body {
-    padding: 0;
-    width: 100vw;
-    height: 100vh;
-  }
-  iframe {
-    border: none;
-    width: 100%;
-    height: 100%;
-  }
-  </style>
-<head>
-<body>
-  <iframe id="iframe" src="${url}"></iframe>
-  <script>
-    var iframe = document.getElementById('iframe')
-    window.addEventListener('message', ({ data }) => {
-      if (data && data.target === 'valaxy') {
-        iframe.contentWindow.postMessage(data, '${serverAddr}')
-      }
-    })
-  </script>
-</body>
-`
+    const previewErrorHtml = await readFile(ctx.ext.asAbsolutePath('./res/html/preview-error.html'), 'utf-8')
+    this.view.webview.html = previewErrorHtml.replace('<!-- inject global var -->', injectedConfig)
+
+    try {
+      const res = await new Promise<IncomingMessage>((resolve, reject) => {
+        const req = http.request(`${serverAddr}index.html`)
+
+        req.on('response', (res) => {
+          resolve(res)
+        })
+
+        req.on('error', (err) => {
+          reject(err)
+        })
+
+        req.end()
+      })
+
+      if (res.statusCode !== 200)
+        throw new Error('Server not found')
+      else
+        consola.success('Server found')
+    }
+    catch (e) {
+      console.error(e)
+      return
+    }
+
+    const previewHtml = await readFile(ctx.ext.asAbsolutePath('./res/html/preview.html'), 'utf-8')
+    const previewTargetHtml = previewHtml.replace('<!-- inject global var -->', injectedConfig)
+    this.view.webview.html = previewTargetHtml
 
     setTimeout(() => this.updateColor(), 10)
     setTimeout(() => this.updateColor(), 300)

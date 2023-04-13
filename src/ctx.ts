@@ -38,7 +38,7 @@ export class Context {
     if (this.posts.length === 0)
       return
 
-    const existPost = this.posts.find(p => p.path === this.doc?.uri.fsPath)
+    const existPost = this.posts.find(p => p.uri.fsPath === this.doc?.uri.fsPath)
     if (existPost) {
       const { frontmatter } = await this.readPost(uri)
       existPost.frontmatter = frontmatter
@@ -54,7 +54,7 @@ export class Context {
     const { data } = matter(text)
     return {
       frontmatter: data,
-      path: uri.fsPath,
+      uri,
     }
   }
 
@@ -64,7 +64,7 @@ export class Context {
   }
 
   deletePost(path: string) {
-    const index = this.posts.findIndex(p => p.path === path)
+    const index = this.posts.findIndex(p => p.uri.fsPath === path)
     if (index > -1)
       this.posts.splice(index, 1)
   }
