@@ -80,6 +80,10 @@ export function configEditor() {
     postsProvider.refresh()
   })
 
+  commands.registerCommand('valaxy.addPost', async () => {
+    postsProvider.add()
+  })
+
   update()
 }
 
