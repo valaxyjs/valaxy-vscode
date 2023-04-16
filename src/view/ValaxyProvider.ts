@@ -2,6 +2,7 @@ import { Buffer } from 'node:buffer'
 import type { ProviderResult, TreeDataProvider } from 'vscode'
 import { EventEmitter, Uri, window, workspace } from 'vscode'
 import { ctx } from '../ctx'
+import { newPostTemplate } from '../../res/md/template'
 import { PostItem } from './PostItem'
 
 export class PostsProvider implements TreeDataProvider<PostItem> {
@@ -9,24 +10,40 @@ export class PostsProvider implements TreeDataProvider<PostItem> {
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event
 
   async add(): Promise<void> {
-    const filename = await window.showInputBox({
-      placeHolder: 'Type the filename of the new post',
+    const EXIST_NOTICE_MSG = 'A post with the same name already exists'
+
+    const input1 = await window.showInputBox({
+      placeHolder: 'Type the filename/scaffold\'s name of the new post',
     })
 
-    if (filename) {
+    if (input1) {
       const uri = workspace.workspaceFolders?.[0].uri
       if (!uri)
         return
-      const filePath = Uri.joinPath(uri, '/posts', `${filename}.md`)
-      const now = new Date().toISOString()
-      await workspace.fs.writeFile(filePath, Buffer.from(`---
-title: 
-date: ${now}
-updated: ${now}
-tags:
-  - 
-categories: 
----\n`))
+
+      try {
+        await workspace.fs.stat(Uri.joinPath(uri, '/scaffolds', `${input1}.md`))
+        const input2 = await window.showInputBox({
+          placeHolder: 'Type the filename of the new post',
+        })
+        if (input2) {
+          if (ctx.findPost(Uri.joinPath(uri, '/pages/posts', `${input2}.md`))) {
+            window.showErrorMessage(EXIST_NOTICE_MSG)
+            return
+          }
+
+          await workspace.fs.copy(Uri.joinPath(uri, '/scaffolds', `${input1}.md`), Uri.joinPath(uri, '/pages/posts', `${input2}.md`))
+        }
+      }
+      catch {
+        if (ctx.findPost(Uri.joinPath(uri, '/pages/posts', `${input1}.md`))) {
+          window.showErrorMessage(EXIST_NOTICE_MSG)
+          return
+        }
+
+        const filePath = Uri.joinPath(uri, '/pages/posts', `${input1}.md`)
+        await workspace.fs.writeFile(filePath, Buffer.from(newPostTemplate()))
+      }
     }
   }
 
