@@ -1,5 +1,7 @@
+import { formatTime } from '../../src/utils'
+
 function newPostTemplate(): string {
-  const now = new Date().toISOString()
+  const now = formatTime(new Date())
   return `---
 title: 
 date: ${now}

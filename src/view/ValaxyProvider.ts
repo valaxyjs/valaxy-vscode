@@ -1,8 +1,10 @@
 import { Buffer } from 'node:buffer'
 import type { ProviderResult, TreeDataProvider } from 'vscode'
 import { EventEmitter, Uri, window, workspace } from 'vscode'
+import { render } from 'ejs'
 import { ctx } from '../ctx'
 import { newPostTemplate } from '../../res/md/template'
+import { formatTime } from '../utils'
 import { PostItem } from './PostItem'
 
 export class PostsProvider implements TreeDataProvider<PostItem> {
@@ -12,38 +14,36 @@ export class PostsProvider implements TreeDataProvider<PostItem> {
   async add(): Promise<void> {
     const EXIST_NOTICE_MSG = 'A post with the same name already exists'
 
-    const input1 = await window.showInputBox({
-      placeHolder: 'Type the filename/scaffold\'s name of the new post',
-    })
+    const postName = (await window.showInputBox({
+      placeHolder: 'Type a filename or use a scaffold for the new post',
+    }))?.trim()
 
-    if (input1) {
+    if (postName) {
       const uri = workspace.workspaceFolders?.[0].uri
       if (!uri)
         return
 
       try {
-        await workspace.fs.stat(Uri.joinPath(uri, '/scaffolds', `${input1}.md`))
-        const input2 = await window.showInputBox({
-          placeHolder: 'Type the filename of the new post',
-        })
-        if (input2) {
-          if (ctx.findPost(Uri.joinPath(uri, '/pages/posts', `${input2}.md`))) {
-            window.showErrorMessage(EXIST_NOTICE_MSG)
-            return
-          }
-
-          await workspace.fs.copy(Uri.joinPath(uri, '/scaffolds', `${input1}.md`), Uri.joinPath(uri, '/pages/posts', `${input2}.md`))
-        }
+        const template = (await workspace.fs.readFile(Uri.joinPath(uri, '/scaffolds', `${postName}.md`))).toString()
+        createPost(uri, 'post', render(template, { title: '', layout: 'post', date: formatTime(new Date()) }), true)
       }
       catch {
-        if (ctx.findPost(Uri.joinPath(uri, '/pages/posts', `${input1}.md`))) {
-          window.showErrorMessage(EXIST_NOTICE_MSG)
-          return
-        }
-
-        const filePath = Uri.joinPath(uri, '/pages/posts', `${input1}.md`)
-        await workspace.fs.writeFile(filePath, Buffer.from(newPostTemplate()))
+        createPost(uri, postName, newPostTemplate())
       }
+    }
+
+    async function createPost(uri: Uri, filename: string, content: string, autoSuffix = false, suffixNum = 0) {
+      const sufFilename = `${filename}${suffixNum > 0 ? suffixNum : ''}.md`
+      if (ctx.findPost(Uri.joinPath(uri, '/pages/posts', sufFilename))) {
+        if (autoSuffix)
+          createPost(uri, filename, content, true, suffixNum + 1)
+        else
+          window.showErrorMessage(EXIST_NOTICE_MSG)
+        return
+      }
+
+      const filePath = Uri.joinPath(uri, '/pages/posts', sufFilename)
+      await workspace.fs.writeFile(filePath, Buffer.from(content))
     }
   }
 
