@@ -33,7 +33,10 @@
           const parts = filename.split('.')
           parts.pop()
           const postId = parts.join('.')
+          // const targetPostUrl = `/posts/${postId}`
           iframe.src = `${window.CONFIG.url}posts/${postId}`
+          // use vue router not work in frame
+          // window.__VUE_DEVTOOLS_GLOBAL_HOOK__.apps[0].app.config.globalProperties.$router.push(targetPostUrl)
         }
       }
     })
