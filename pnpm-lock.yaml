@@ -10,6 +10,9 @@ importers:
       '@antfu/ni':
         specifier: ^0.21.3
         version: 0.21.3
+      '@types/ejs':
+        specifier: ^3.1.2
+        version: 3.1.2
       '@types/markdown-it':
         specifier: ^12.2.3
         version: 12.2.3
@@ -25,6 +28,9 @@ importers:
       bumpp:
         specifier: ^9.1.0
         version: 9.1.0
+      ejs:
+        specifier: ^3.1.9
+        version: 3.1.9
       eslint:
         specifier: ^8.39.0
         version: 8.39.0
@@ -957,6 +963,10 @@ packages:
     resolution: {integrity: sha512-9AonUzyTjXXhEOa0DnqpzZi6VHlqKMswga9EXjpXnnqxwLtdvPPtlO8evrI5D9S6asFRCQ6v+wpiUKbw+vKqyg==}
     dependencies:
       '@types/ms': 0.7.31
+    dev: true
+
+  /@types/ejs@3.1.2:
+    resolution: {integrity: sha512-ZmiaE3wglXVWBM9fyVC17aGPkLo/UgaOjEiI2FXQfyczrCefORPxIe+2dVmnmk3zkVIbizjrlQzmPGhSYGXG5g==}
     dev: true
 
   /@types/estree@1.0.1:
@@ -2099,7 +2109,7 @@ packages:
     dev: true
 
   /color-name@1.1.3:
-    resolution: {integrity: sha512-72fSenhMw2HZMTVHeCA9KCmpEIbzWiQsjN+BHcBbS9vr1mtt+vJjPdksIBNUmKAW8TFUDPJK5SUU3QhE9NEXDw==}
+    resolution: {integrity: sha1-p9BVi9icQveV3UIyj3QIMcpTvCU=}
     dev: true
 
   /color-name@1.1.4:
@@ -2141,7 +2151,7 @@ packages:
     dev: true
 
   /concat-map@0.0.1:
-    resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
+    resolution: {integrity: sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=}
     dev: true
 
   /concordance@5.0.4:
@@ -3473,7 +3483,7 @@ packages:
     dev: true
 
   /has-flag@3.0.0:
-    resolution: {integrity: sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw==}
+    resolution: {integrity: sha1-tdRU3CGZriJWmfNGfloH87lVuv0=}
     engines: {node: '>=4'}
     dev: true
 

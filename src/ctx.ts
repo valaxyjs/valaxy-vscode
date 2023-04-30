@@ -76,6 +76,10 @@ export class Context {
       return bDate.getTime() - aDate.getTime()
     })
   }
+
+  findPost(uri: Uri) {
+    return this.posts.find(p => p.uri.fsPath === uri.fsPath)
+  }
 }
 
 export const ctx = new Context()

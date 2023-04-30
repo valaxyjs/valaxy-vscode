@@ -15,3 +15,16 @@ export function isDarkTheme() {
   // IDK, maybe dark
   return true
 }
+
+export function formatTime(date: Date) {
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+
+  const hour = date.getHours()
+  const minute = date.getMinutes()
+  const second = date.getSeconds()
+
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${year}-${pad(month)}-${pad(day)} ${pad(hour)}:${pad(minute)}:${pad(second)}`
+}

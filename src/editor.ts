@@ -1,5 +1,4 @@
-import type { Uri } from 'vscode'
-import { commands, window, workspace } from 'vscode'
+import { RelativePattern, Uri, commands, window, workspace } from 'vscode'
 import Markdown from 'markdown-it'
 import matter from 'gray-matter'
 import { ctx } from './ctx'
@@ -29,7 +28,7 @@ export function configEditor() {
 
   const postsProvider = new PostsProvider()
 
-  const mdWatcher = workspace.createFileSystemWatcher('**/*.md')
+  const mdWatcher = workspace.createFileSystemWatcher(new RelativePattern(Uri.joinPath(workspace.workspaceFolders![0].uri, 'pages/posts'), '**/*.md'))
   mdWatcher.onDidCreate(async (uri) => {
     await ctx.addPost(uri)
     postsProvider.refresh()
@@ -78,6 +77,10 @@ export function configEditor() {
 
   commands.registerCommand('valaxy.refreshPosts', async () => {
     postsProvider.refresh()
+  })
+
+  commands.registerCommand('valaxy.addPost', async () => {
+    postsProvider.add()
   })
 
   update()
