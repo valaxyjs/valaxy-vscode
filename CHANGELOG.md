@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-09-21)
 
 - Support multiple Valaxy workspace folders with per-folder settings.
 - Recursively discover Markdown posts and recover from missing directories and malformed frontmatter.
