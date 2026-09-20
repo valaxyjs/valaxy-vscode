@@ -2,9 +2,9 @@
 
 Tracking issue: [#1](https://github.com/valaxyjs/valaxy-vscode/issues/1).
 
-## 0.1.0 compatibility PR
+## 0.1.0 compatibility release
 
-Implemented in this branch; release completion depends on review, CI and publishing:
+Released on GitHub and Visual Studio Marketplace after PR #3 was squash-merged:
 
 - Detect Valaxy dependencies in every workspace folder and apply folder-scoped settings.
 - Recursively load posts, tolerate absent directories and invalid frontmatter, and rescan after changes.
@@ -15,18 +15,24 @@ Implemented in this branch; release completion depends on review, CI and publish
 
 Release gates:
 
-- [ ] Merge compatibility PR after CI passes.
-- [ ] Install its VSIX and complete a manual preview smoke test.
-- [ ] Create the 0.1.0 tag and publish the draft GitHub release.
-- [ ] Configure Marketplace credentials and publish 0.1.0.
+- [x] Merge compatibility PR after CI passes.
+- [x] Validate the release VSIX in a real VS Code extension host against Valaxy 1.0.0-rc.12.
+- [x] Create the 0.1.0 tag and publish the GitHub release.
+- [x] Configure Marketplace credentials and publish 0.1.0.
+
+## 0.2.0 native post creation
+
+[PR #2](https://github.com/valaxyjs/valaxy-vscode/pull/2), originally contributed by @Rotten-LKZ, is adapted to the current workspace model with destination selection, nested files, project EJS scaffolds, exclusive creation and cancellation/error handling. Unit and extension-host tests cover the new behavior.
+
+The release workflow verifies the publisher PAT before publishing and safely skips already-published versions on retries.
 
 ## Follow-up work
 
-- [ ] Review and rebase [PR #2](https://github.com/valaxyjs/valaxy-vscode/pull/2) for native post creation, including templates, multi-root destination selection and collision handling. Preserve the contributor's work and attribution.
-- [ ] Validate Remote SSH/Containers forwarding and large-workspace performance.
-- [ ] Define a public optional DevTools discovery/open-link contract, including base URL, capability/version advertisement and authentication ownership.
-- [ ] Add Open DevTools only after that contract is available. Preserve offline post navigation and support `devtools: false`.
-- [ ] Consider canonical file-to-route lookup for custom router configurations through a public read-only Valaxy capability.
+The initial maintenance milestone is tracked in #1. Longer-term work is tracked separately:
+
+- [#4 — Remote SSH/Containers forwarding and large-workspace performance](https://github.com/valaxyjs/valaxy-vscode/issues/4).
+- [#5 — Public DevTools discovery/open-link contract and optional Open DevTools command](https://github.com/valaxyjs/valaxy-vscode/issues/5), including version/capability advertisement and authentication ownership. Preserve offline operation and support `devtools: false`.
+- [#6 — Public read-only file-to-route lookup for custom router configurations](https://github.com/valaxyjs/valaxy-vscode/issues/6).
 
 ## Original issue items
 
@@ -34,7 +40,7 @@ Release gates:
 | --- | --- |
 | Toggle preview when switching posts | Included for conventional routes in the compatibility PR. |
 | Open VS Code settings | Included in the compatibility PR. |
-| Create new post | Follow up on existing PR #2. |
+| Create new post | Included in 0.2.0 through the adapted PR #2. |
 | Edit albums | Keep visual collection/album management in DevTools. |
 | Open browser preview | Included in the compatibility PR. |
 | Open config panel | Use DevTools for visual site/theme settings; VS Code extension settings are already a native command. |

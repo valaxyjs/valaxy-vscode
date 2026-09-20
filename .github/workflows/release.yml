@@ -70,4 +70,5 @@ jobs:
           VERSION=$(node -p "require('./package.json').version")
           test "$GITHUB_REF_NAME" = "v$VERSION"
           test -n "$VSCE_PAT"
-          pnpm exec vsce publish --packagePath "valaxy-$VERSION.vsix"
+          pnpm exec vsce verify-pat YunYouJun
+          pnpm exec vsce publish --packagePath "valaxy-$VERSION.vsix" --skip-duplicate

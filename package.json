@@ -2,7 +2,7 @@
   "publisher": "YunYouJun",
   "name": "valaxy",
   "displayName": "Valaxy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "packageManager": "pnpm@10.30.0",
   "description": "Valaxy support for VS Code",
@@ -33,6 +33,12 @@
   ],
   "contributes": {
     "commands": [
+      {
+        "command": "valaxy.addPost",
+        "category": "Valaxy",
+        "title": "Add a Post",
+        "icon": "$(add)"
+      },
       {
         "command": "valaxy.refreshPosts",
         "category": "Valaxy",
@@ -66,6 +72,11 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "valaxy.addPost",
+          "when": "view == valaxy-posts",
+          "group": "navigation@1"
+        },
         {
           "command": "valaxy.refreshPosts",
           "when": "view =~ /valaxy-posts/",
@@ -177,10 +188,12 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^5.0.0",
+    "@types/ejs": "3.1.5",
     "@types/node": "^22.0.0",
     "@types/vscode": "1.85.0",
     "@vscode/test-electron": "3.1.0",
     "@vscode/vsce": "4.0.0",
+    "ejs": "6.0.1",
     "eslint": "^9.39.0",
     "gray-matter": "4.0.3",
     "tsup": "8.5.0",
