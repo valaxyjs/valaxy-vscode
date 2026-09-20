@@ -10,3 +10,6 @@ lib-cov
 logs
 node_modules
 temp
+
+.vscode-test
+test/integration/fixtures/**/.valaxy

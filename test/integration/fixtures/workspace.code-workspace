@@ -1,0 +1,4 @@
+{
+  "folders": [ { "path": "plain" }, { "path": "empty" }, { "path": "blog" } ],
+  "settings": { "valaxy.port": 4867, "valaxy.serverUrl": "http://localhost:4867/blog/", "security.workspace.trust.enabled": false }
+}

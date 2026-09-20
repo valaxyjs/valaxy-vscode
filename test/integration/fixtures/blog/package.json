@@ -1,0 +1,7 @@
+{
+  "name": "valaxy-vscode-compatibility-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "valaxy --port 4867" },
+  "dependencies": { "valaxy": "1.0.0-rc.12", "valaxy-theme-yun": "1.0.0-rc.12" }
+}

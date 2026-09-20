@@ -1,81 +1,51 @@
-import { promises as fs } from 'node:fs'
-import type { ExtensionContext, TextDocument, Uri } from 'vscode'
-import { EventEmitter } from 'vscode'
-import matter from 'gray-matter'
-import type { PostInfo } from './types'
+import type { Post, Project } from './project'
+import { EventEmitter, workspace } from 'vscode'
+import { resolveProject } from './config'
+import { isInside, scanPosts } from './project'
 
 export class Context {
-  private _onDataUpdate = new EventEmitter<PostInfo['frontmatter']>()
-  private _data: PostInfo['frontmatter'] = {}
+  private changed = new EventEmitter<void>()
+  readonly onDidChange = this.changed.event
+  projects: Project[] = []
+  posts: Post[] = []
+  private generation = 0
+  private disposed = false
 
-  onDataUpdate = this._onDataUpdate.event
+  constructor(private report: (message: string) => void) {}
 
-  ext: ExtensionContext = undefined!
-  doc: TextDocument | undefined
-
-  userRoot?: string
-  postsRoot?: string
-
-  /**
-   * All posts in the workspace
-   */
-  posts: PostInfo[] = []
-
-  get data() {
-    return this._data
-  }
-
-  set data(data: PostInfo['frontmatter']) {
-    this._data = data
-    this._onDataUpdate.fire(data)
-  }
-
-  get subscriptions() {
-    return this.ext.subscriptions
-  }
-
-  async updatePosts(uri: Uri) {
-    if (this.posts.length === 0)
-      return
-
-    const existPost = this.posts.find(p => p.uri.fsPath === this.doc?.uri.fsPath)
-    if (existPost) {
-      const { frontmatter } = await this.readPost(uri)
-      existPost.frontmatter = frontmatter
-
-      // trigger refresh
-      this.data = frontmatter
+  async refresh() {
+    const generation = ++this.generation
+    const projects: Project[] = []
+    for (const folder of workspace.workspaceFolders ?? []) {
+      try {
+        const project = await resolveProject(folder)
+        if (project)
+          projects.push(project)
+      }
+      catch (error) {
+        this.report(`${folder.name}: ${String(error)}`)
+      }
     }
-    else { this.addPost(uri) }
-  }
-
-  async readPost(uri: Uri): Promise<PostInfo> {
-    const text = await fs.readFile(uri.fsPath, 'utf-8')
-    const { data } = matter(text)
-    return {
-      frontmatter: data,
-      uri,
+    const posts = (await Promise.all(projects.map(project => scanPosts(project, this.report)))).flat()
+    if (!this.disposed && generation === this.generation) {
+      this.projects = projects
+      this.posts = posts
+      this.changed.fire()
     }
+    return this.posts.length
   }
 
-  async addPost(uri: Uri) {
-    this.posts.push(await this.readPost(uri))
-    this.sortPosts()
+  projectFor(filePath?: string) {
+    if (filePath) {
+      return this.projects.filter(project => isInside(project.root, filePath))
+        .sort((a, b) => b.root.length - a.root.length)[0]
+    }
+    return this.projects.length === 1 ? this.projects[0] : undefined
   }
 
-  deletePost(path: string) {
-    const index = this.posts.findIndex(p => p.uri.fsPath === path)
-    if (index > -1)
-      this.posts.splice(index, 1)
-  }
-
-  sortPosts() {
-    this.posts.sort((a, b) => {
-      const aDate = new Date(a.frontmatter.updated || a.frontmatter.date || Date.now())
-      const bDate = new Date(b.frontmatter.updated || b.frontmatter.date || Date.now())
-      return bDate.getTime() - aDate.getTime()
-    })
+  dispose() {
+    this.disposed = true
+    this.generation++
+    this.changed.dispose()
   }
 }
-
-export const ctx = new Context()

@@ -1,5 +1,9 @@
-src
-node_modules
-test
-.github
-.vscode
+**/*
+!package.json
+!README.md
+!CHANGELOG.md
+!LICENSE
+!dist/index.js
+!res/logo.png
+!res/logo.svg
+!res/icons/*.svg
