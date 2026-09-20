@@ -1,44 +1,20 @@
-import { ConfigurationTarget, workspace } from 'vscode'
+import type { WorkspaceFolder } from 'vscode'
+import type { Project } from './project'
+import { workspace } from 'vscode'
+import { isValaxyProject, resolvePostsRoot, resolveServerUrl } from './project'
 
-export function getConfig<T>(key: string, v?: T) {
-  return workspace.getConfiguration('valaxy').get(key, v)
+export async function resolveProject(folder: WorkspaceFolder): Promise<Project | undefined> {
+  if (folder.uri.scheme !== 'file')
+    return
+  const config = workspace.getConfiguration('valaxy', folder.uri)
+  const root = folder.uri.fsPath
+  if (!await isValaxyProject(root, config.get('enabled', false)))
+    return
+  return {
+    root,
+    name: folder.name,
+    postsRoot: resolvePostsRoot(root, config.get('postsFolder', 'pages/posts')),
+    serverUrl: resolveServerUrl(config.get('serverUrl', ''), config.get('port', 4859)),
+    confirmDelete: config.get('confirmDelete', true),
+  }
 }
-
-export function setConfig<T>(key: string, v?: T) {
-  return workspace.getConfiguration('valaxy').set(key, v, ConfigurationTarget.Workspace)
-}
-
-export interface Config {
-  root: string
-  port: number
-  /**
-   * The folder name of the posts (relative to the workspace root)
-   * @default 'pages/posts'
-   */
-  postsFolder: string
-  /**
-   * confirm when deleting a post
-   * @default false
-   */
-  confirmDelete: boolean
-  enabled: boolean
-}
-
-export const config = new Proxy(
-  {
-    get root() {
-      return workspace.workspaceFolders?.[0]?.uri?.fsPath || ''
-    },
-  },
-  {
-    get(target, p, r) {
-      if (p in target || !(typeof p === 'string'))
-        return Reflect.get(target, p, r)
-      return getConfig(p)
-    },
-    set(target, p, v) {
-      setConfig(p as string, v)
-      return true
-    },
-  },
-) as Readonly<Config>

@@ -2,20 +2,20 @@
   "publisher": "YunYouJun",
   "name": "valaxy",
   "displayName": "Valaxy",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@8.1.1",
+  "packageManager": "pnpm@10.30.0",
   "description": "Valaxy support for VS Code",
-  "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+  "author": "YunYouJun <me@yunyoujun.cn>",
   "license": "MIT",
   "funding": "https://github.com/sponsors/YunYouJun",
-  "homepage": "https://github.com/YunYouJun/valaxy-vscode#readme",
+  "homepage": "https://valaxy.site/ecosystem/vscode",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YunYouJun/valaxy-vscode"
+    "url": "https://github.com/valaxyjs/valaxy-vscode"
   },
   "bugs": {
-    "url": "https://github.com/YunYouJun/valaxy-vscode/issues"
+    "url": "https://github.com/valaxyjs/valaxy-vscode/issues"
   },
   "sponsor": {
     "url": "https://github.com/sponsors/YunYouJun"
@@ -25,11 +25,8 @@
   ],
   "main": "./dist/index.js",
   "icon": "res/logo.png",
-  "files": [
-    "dist"
-  ],
   "engines": {
-    "vscode": "^1.77.0"
+    "vscode": "^1.85.0"
   },
   "activationEvents": [
     "onStartupFinished"
@@ -53,6 +50,18 @@
         "category": "Valaxy",
         "title": "Delete Post",
         "icon": "$(trash)"
+      },
+      {
+        "command": "valaxy.openSettings",
+        "category": "Valaxy",
+        "title": "Open Extension Settings",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "valaxy.openBrowser",
+        "category": "Valaxy",
+        "title": "Open Browser Preview",
+        "icon": "$(link-external)"
       }
     ],
     "menus": {
@@ -66,17 +75,27 @@
           "command": "valaxy.preview-refresh",
           "when": "view =~ /valaxy-preview/",
           "group": "navigation"
+        },
+        {
+          "command": "valaxy.openSettings",
+          "when": "view == valaxy-preview",
+          "group": "navigation"
+        },
+        {
+          "command": "valaxy.openBrowser",
+          "when": "view == valaxy-preview",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
         {
           "command": "valaxy.delete-post",
-          "when": "view =~ /valaxy-posts/",
+          "when": "view == valaxy-posts && viewItem == valaxy-post",
           "group": "inline@1"
         },
         {
           "command": "valaxy.delete-post",
-          "when": "view =~ /valaxy-posts/"
+          "when": "view == valaxy-posts && viewItem == valaxy-post"
         }
       ]
     },
@@ -86,27 +105,35 @@
       "properties": {
         "valaxy.enabled": {
           "type": "boolean",
-          "scope": "window",
+          "scope": "resource",
           "description": "Force enable extension",
           "default": false
         },
         "valaxy.port": {
           "type": "number",
-          "scope": "window",
+          "scope": "resource",
           "description": "The port of Valaxy server",
-          "default": 4859
+          "default": 4859,
+          "minimum": 1,
+          "maximum": 65535
         },
         "valaxy.postsFolder": {
           "type": "string",
-          "scope": "window",
+          "scope": "resource",
           "description": "The folder of your posts",
           "default": "pages/posts"
         },
         "valaxy.confirmDelete": {
           "type": "boolean",
-          "scope": "window",
+          "scope": "resource",
           "description": "Confirm before deleting a post",
-          "default": false
+          "default": true
+        },
+        "valaxy.serverUrl": {
+          "type": "string",
+          "scope": "resource",
+          "default": "",
+          "description": "Optional local server URL including a base path, for example http://localhost:4859/blog/. Overrides valaxy.port."
         }
       }
     },
@@ -137,34 +164,33 @@
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --external vscode",
-    "dev": "nr build --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "lint": "eslint .",
-    "vscode:prepublish": "nr build",
-    "publish": "vsce publish --no-dependencies",
+    "vscode:prepublish": "pnpm build",
     "pack": "vsce package --no-dependencies",
-    "test": "vitest",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
-    "release": "bumpp && nr publish"
+    "test:integration": "pnpm build && node test/integration/run.cjs",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm run pack"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^0.38.5",
-    "@antfu/ni": "^0.21.3",
-    "@types/markdown-it": "^12.2.3",
-    "@types/node": "^18.16.0",
-    "@types/vscode": "^1.77.0",
-    "axios": "^1.3.6",
-    "bumpp": "^9.1.0",
-    "eslint": "^8.39.0",
-    "esno": "^0.16.3",
-    "gray-matter": "^4.0.3",
-    "pnpm": "^8.3.1",
-    "rimraf": "^5.0.0",
-    "tsup": "^6.7.0",
-    "typescript": "^5.0.4",
-    "valaxy": "^0.14.28",
-    "vite": "^4.3.1",
-    "vitest": "^0.30.1",
-    "vsce": "^2.15.0"
+    "@antfu/eslint-config": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/vscode": "1.85.0",
+    "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "4.0.0",
+    "eslint": "^9.39.0",
+    "gray-matter": "4.0.3",
+    "tsup": "8.5.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false
+    },
+    "virtualWorkspaces": false
   }
 }
