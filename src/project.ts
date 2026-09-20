@@ -123,5 +123,5 @@ export function previewUrl(project: Project, filePath?: string) {
   // Dynamic routes and router overrides cannot be inferred from a filename.
   if (segments.some(segment => /[[\]]/.test(segment)))
     return project.serverUrl
-  return new URL(segments.map(encodeURIComponent).join('/'), project.serverUrl).href
+  return new URL(segments.flatMap(segment => segment.split('.')).map(encodeURIComponent).join('/'), project.serverUrl).href
 }

@@ -36,7 +36,7 @@ Set these options in each blog folder's `.vscode/settings.json`:
 
 Set the URL or port to the address printed by your development server. Remote forwarding uses VS Code's `asExternalUri`. Automatic port discovery is not implemented.
 
-Preview maps conventional `pages/**/*.md` routes, including nested paths, `index.md` and encoded filenames. Custom router hooks, dynamic routes, and posts outside `pages` cannot be inferred reliably: navigate in the preview/browser for those cases. Preview uses a regular iframe, without depending on a Valaxy-specific `postMessage` bridge. If the server is stopped, start it and refresh the view; use the browser command when iframe embedding is unavailable.
+Preview maps conventional `pages/**/*.md` routes, including nested paths, dot nesting (`hello.world.md` → `hello/world`), `index.md` and encoded filenames. Custom router hooks, dynamic routes, and posts outside `pages` cannot be inferred reliably: navigate in the preview/browser for those cases. Preview uses a regular iframe, without depending on a Valaxy-specific `postMessage` bridge. If the server is stopped, start it and refresh the view; use the browser command when iframe embedding is unavailable.
 
 ## Relationship to DevTools
 

@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict')
 const { spawn } = require('node:child_process')
+const { readFile } = require('node:fs/promises')
 const path = require('node:path')
 const process = require('node:process')
 const { runTests } = require('@vscode/test-electron')
@@ -32,6 +33,9 @@ async function ready() {
         const markdown = await fetch(`http://localhost:4867/blog/@fs/${path.join(fixture, 'pages/posts/nested/hello.md').replaceAll('\\', '/')}?import`)
         assert.equal(markdown.status, 200)
         assert.match(await markdown.text(), /Nested compatibility post/)
+        const routes = await readFile(path.join(fixture, '.valaxy/route-map.d.ts'), 'utf8')
+        assert.match(routes, /posts\/hello\/world/)
+        assert.match(routes, /posts\/nested\/hello/)
         return
       }
     }

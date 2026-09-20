@@ -79,7 +79,7 @@ describe('preview routing', () => {
     ['pages/posts/index.md', 'posts'],
     ['pages/index.md', ''],
     ['pages/posts/你好 #?.md', 'posts/%E4%BD%A0%E5%A5%BD%20%23%3F'],
-    ['pages/posts/hello.world.md', 'posts/hello.world'],
+    ['pages/posts/hello.world.md', 'posts/hello/world'],
     ['pages/posts/[id].md', ''],
     ['README.md', ''],
     ['pages-elsewhere/post.md', ''],
