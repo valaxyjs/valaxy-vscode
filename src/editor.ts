@@ -2,6 +2,7 @@ import type { ExtensionContext, OutputChannel } from 'vscode'
 import type { Context } from './ctx'
 import type { Project } from './project'
 import { commands, env, RelativePattern, Uri, window, workspace } from 'vscode'
+import { addPost } from './createPost'
 import { isInside, previewUrl } from './project'
 import { PostItem } from './view/PostItem'
 import { PreviewProvider } from './view/PreviewProvider'
@@ -69,6 +70,7 @@ export function configureEditor(ext: ExtensionContext, ctx: Context, output: Out
         schedule()
     }),
     commands.registerCommand('valaxy.refreshPosts', refresh),
+    commands.registerCommand('valaxy.addPost', () => addPost(ctx)),
     commands.registerCommand('valaxy.preview-refresh', async () => {
       const project = await selectProject()
       if (project)

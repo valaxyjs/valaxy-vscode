@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 (2026-09-21)
+
+- Complete the native **Add a Post** contribution by @Rotten-LKZ (PR #2), adapted to the Valaxy 1.x workspace model.
+- Select the destination blog in multi-root workspaces, create nested directories, and open the new post immediately.
+- Choose a built-in template or project EJS scaffolds with Valaxy-compatible title, layout and date variables.
+- Protect existing files with exclusive creation, reject invalid paths and symlink destinations, and handle prompt cancellation and template errors.
+- Add filesystem, command and extension-host regression coverage for post creation.
+- Verify Marketplace credentials before publishing and allow successful retries when the version already exists.
+
 ## 0.1.0 (2026-09-21)
 
 - Support multiple Valaxy workspace folders with per-folder settings.

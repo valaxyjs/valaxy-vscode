@@ -15,7 +15,11 @@ Post discovery works without a running server. It recursively scans Markdown fil
 
 ## Commands and settings
 
-The command palette offers **Valaxy: Refresh Posts**, **Preview Refresh**, **Open Browser Preview**, and **Open Extension Settings**. Delete actions move posts to the trash and ask for confirmation by default.
+The command palette offers **Valaxy: Add a Post**, **Refresh Posts**, **Preview Refresh**, **Open Browser Preview**, and **Open Extension Settings**. Delete actions move posts to the trash and ask for confirmation by default.
+
+Use **Add a Post** (or the **+** button in Valaxy Posts) to choose a blog in a multi-root workspace and enter a filename such as `hello-world` or `travel/hello-world`. The extension creates missing directories under that blog's `valaxy.postsFolder`, adds `.md` if needed, refreshes the list and opens the new file. Existing files are never overwritten; choose another name if one already exists.
+
+When the selected blog has `scaffolds/*.md`, choose the built-in template or a project scaffold. Scaffolds use EJS, with `title` (the filename without `.md`), `layout` (the scaffold name without `.md`) and local `date` (`YYYY-MM-DD HH:mm:ss`) variables, matching Valaxy's template format. EJS runs only when you explicitly select a scaffold in a trusted workspace. Theme scaffolds and project configuration are not loaded. Cancelling any prompt creates no post.
 
 Set these options in each blog folder's `.vscode/settings.json`:
 
@@ -48,7 +52,7 @@ Both tools can list posts and help with editing, but serve different entry point
 | Lightweight offline post list | Frontmatter, configuration, collections and addon panels |
 | Preview and browser/settings shortcuts | Visual editing powered by the running development server |
 
-Keep visual configuration and album/collection editors in DevTools. A future optional **Open DevTools** command should use an advertised public URL and its supported authentication flow. This extension does not call internal RPC methods, copy authentication tokens, or embed a second configuration editor. See [the roadmap](docs/roadmap.md) for the integration boundary and existing new-post contribution.
+Keep visual configuration and album/collection editors in DevTools. A future optional **Open DevTools** command should use an advertised public URL and its supported authentication flow. This extension does not call internal RPC methods, copy authentication tokens, or embed a second configuration editor. See [the roadmap](docs/roadmap.md) for the integration boundary.
 
 ## Development and verification
 
