@@ -2,14 +2,16 @@ import type { ExtensionContext, OutputChannel } from 'vscode'
 import type { Context } from './ctx'
 import type { Project } from './project'
 import { commands, env, RelativePattern, Uri, window, workspace } from 'vscode'
+import { devtoolsUrl, resolvePreview } from './capabilities'
 import { addPost } from './createPost'
-import { isInside, previewUrl } from './project'
+import { isInside } from './project'
 import { PostItem } from './view/PostItem'
 import { PreviewProvider } from './view/PreviewProvider'
 import { PostsProvider } from './view/ValaxyProvider'
 
 export function configureEditor(ext: ExtensionContext, ctx: Context, output: OutputChannel) {
-  const preview = new PreviewProvider()
+  const chooseRoute = async (urls: string[]) => window.showQuickPick(urls, { placeHolder: 'Select the article preview route' })
+  const preview = new PreviewProvider(resolvePreview, chooseRoute, message => output.appendLine(message))
   const watchers: { dispose: () => void }[] = []
   let timer: ReturnType<typeof setTimeout> | undefined
   const report = (error: unknown) => output.appendLine(String(error))
@@ -74,7 +76,7 @@ export function configureEditor(ext: ExtensionContext, ctx: Context, output: Out
     commands.registerCommand('valaxy.preview-refresh', async () => {
       const project = await selectProject()
       if (project)
-        return preview.show(project, window.activeTextEditor?.document.uri.fsPath)
+        return preview.show(project, window.activeTextEditor?.document.uri.fsPath, true)
     }),
     commands.registerCommand('valaxy.open-file', async (item: PostItem) => {
       if (!(item instanceof PostItem))
@@ -85,8 +87,29 @@ export function configureEditor(ext: ExtensionContext, ctx: Context, output: Out
     commands.registerCommand('valaxy.openSettings', () => commands.executeCommand('workbench.action.openSettings', '@ext:yunyoujun.valaxy')),
     commands.registerCommand('valaxy.openBrowser', async () => {
       const project = await selectProject()
-      if (project)
-        await env.openExternal(await env.asExternalUri(Uri.parse(previewUrl(project, window.activeTextEditor?.document.uri.fsPath))))
+      if (!project)
+        return
+      const result = await resolvePreview(project, window.activeTextEditor?.document.uri.fsPath)
+      let url = result.urls.length === 1 ? result.urls[0] : result.urls.length > 1 ? await chooseRoute(result.urls) : undefined
+      if (!result.urls.length) {
+        const action = await window.showInformationMessage(result.message || 'No preview route is available.', 'Open Site')
+        if (action === 'Open Site')
+          url = project.serverUrl
+      }
+      if (url)
+        await env.openExternal(await env.asExternalUri(Uri.parse(url)))
+    }),
+    commands.registerCommand('valaxy.openDevtools', async () => {
+      const project = await selectProject()
+      if (!project)
+        return
+      try {
+        const url = await devtoolsUrl(project)
+        await env.openExternal(await env.asExternalUri(Uri.parse(url)))
+      }
+      catch (error) {
+        await window.showInformationMessage((error as Error).message)
+      }
     }),
     commands.registerCommand('valaxy.delete-post', async (item: PostItem) => {
       if (!(item instanceof PostItem) || !ctx.posts.some(post => post.filePath === item.post.filePath))

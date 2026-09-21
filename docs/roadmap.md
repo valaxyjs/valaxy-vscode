@@ -34,6 +34,13 @@ The initial maintenance milestone is tracked in #1. Longer-term work is tracked 
 - [#5 — Public DevTools discovery/open-link contract and optional Open DevTools command](https://github.com/valaxyjs/valaxy-vscode/issues/5), including version/capability advertisement and authentication ownership. Preserve offline operation and support `devtools: false`.
 - [#6 — Public read-only file-to-route lookup for custom router configurations](https://github.com/valaxyjs/valaxy-vscode/issues/6).
 
+## Current follow-up implementation
+
+- Remote SSH and Dev Containers have real workspace-host validation, including folder-specific base paths and remapped ports. [Measurements and validation limits](remote-validation.md) document the evidence. Overlapping refreshes are coalesced.
+- **Open DevTools** uses public capability discovery and opens the browser-owned authentication flow. Native/offline functionality remains independent of DevTools.
+- Custom preview uses a framework-provided final route snapshot. Author drafts/hidden articles and configured content directories are supported; multiple routes require selection and unresolved parameters retain the current preview with a manual-navigation option.
+- The last two features require a Valaxy build advertising editor protocol version 1. Older versions retain conventional preview. Keep the associated issues open until the companion core capability and extension release are available; implementation does not imply publication.
+
 ## Original issue items
 
 | Original request | Direction |

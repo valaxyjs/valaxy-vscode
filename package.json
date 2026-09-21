@@ -24,6 +24,7 @@
     "Other"
   ],
   "main": "./dist/index.js",
+  "extensionKind": ["workspace"],
   "icon": "res/logo.png",
   "engines": {
     "vscode": "^1.85.0"
@@ -33,6 +34,12 @@
   ],
   "contributes": {
     "commands": [
+      {
+        "command": "valaxy.openDevtools",
+        "category": "Valaxy",
+        "title": "Open DevTools",
+        "icon": "$(tools)"
+      },
       {
         "command": "valaxy.addPost",
         "category": "Valaxy",
@@ -72,6 +79,11 @@
     ],
     "menus": {
       "view/title": [
+        {
+          "command": "valaxy.openDevtools",
+          "when": "view == valaxy-preview",
+          "group": "navigation"
+        },
         {
           "command": "valaxy.addPost",
           "when": "view == valaxy-posts",

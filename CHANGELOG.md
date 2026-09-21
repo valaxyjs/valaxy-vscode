@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Discover public Valaxy editor capabilities and add workspace-aware **Open DevTools**, with authentication owned by the browser.
+- Resolve custom article previews from the running framework, including author drafts, hidden articles and custom content folders. Select among multiple routes and explain unresolved dynamic parameters.
+- Preserve offline/legacy preview and reject workspace, base-path and protocol mismatches.
+- Coalesce overlapping article refreshes and publish the final state to every waiting caller.
+- Validate real Remote SSH and Dev Containers workspaces, forwarded ports and folder-specific base paths; document measured performance and proxy limitations.
+
 ## 0.2.0 (2026-09-21)
 
 - Complete the native **Add a Post** contribution by @Rotten-LKZ (PR #2), adapted to the Valaxy 1.x workspace model.
