@@ -59,7 +59,7 @@ jobs:
         with:
           repository: YunYouJun/valaxy
           # Update to a released framework version once the companion PR ships.
-          ref: 282f727d2c718ea421b1fa36d551b3e290fa02fe
+          ref: eb386e7cbfb1d3ee23b043286500d611f5a4b387
           path: .valaxy-framework
       - uses: pnpm/action-setup@v4
         with:
@@ -67,8 +67,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          cache-dependency-path: .valaxy-framework/pnpm-lock.yaml
       - name: Build the framework
         working-directory: .valaxy-framework
         run: pnpm install --frozen-lockfile && pnpm run build
