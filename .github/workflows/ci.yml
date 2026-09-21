@@ -58,8 +58,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: YunYouJun/valaxy
-          # Update to a released framework version once the companion PR ships.
-          ref: 7491fa41d6323e458870c337523478c05a413d1d
+          # Merged in YunYouJun/valaxy#741; update to a release when available.
+          ref: 376b4f14c2ca8bfb988746c8be5ec16d72ce9555
           path: .valaxy-framework
       - uses: pnpm/action-setup@v4
         with:
