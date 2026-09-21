@@ -59,7 +59,7 @@ jobs:
         with:
           repository: YunYouJun/valaxy
           # Update to a released framework version once the companion PR ships.
-          ref: eb386e7cbfb1d3ee23b043286500d611f5a4b387
+          ref: 7491fa41d6323e458870c337523478c05a413d1d
           path: .valaxy-framework
       - uses: pnpm/action-setup@v4
         with:
