@@ -3,7 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, expect, it, vi } from 'vitest'
 
-const state = vi.hoisted(() => ({ folders: [] as any[], configs: {} as Record<string, any> }))
+const state = vi.hoisted(() => ({ folders: [] as any[], configs: {} as Record<string, any>, forward: undefined as undefined | ((url: string) => string) }))
 vi.mock('vscode', () => ({
   workspace: {
     get workspaceFolders() { return state.folders },
@@ -18,7 +18,7 @@ vi.mock('vscode', () => ({
   TreeItemCollapsibleState: { Expanded: 2 },
   ThemeIcon: class {},
   Uri: { file: (fsPath: string) => ({ fsPath }), parse: (url: string) => ({ toString: () => url }) },
-  env: { asExternalUri: async (uri: unknown) => uri },
+  env: { asExternalUri: async (uri: { toString: () => string }) => state.forward ? { toString: () => state.forward!(uri.toString()) } : uri },
 }))
 
 const { Context } = await import('../src/ctx')
@@ -29,6 +29,7 @@ afterEach(async () => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
   state.folders = []
   state.configs = {}
+  state.forward = undefined
 })
 async function folder(name: string, valaxy = true) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'valaxy-workspace-'))
@@ -63,6 +64,63 @@ it('discovers every workspace, scopes configuration and refreshes its tree from 
   await ctx.refresh()
   expect(ctx.posts).toHaveLength(1)
   expect(provider.getChildren()[0].label).toBe('post')
+  ctx.dispose()
+})
+
+it('keeps the existing preview for ambiguous or dynamic routes and chooses only on request', async () => {
+  const root = await folder('blog')
+  const ctx = new Context(() => {})
+  await ctx.refresh()
+  const project = ctx.projects[0]
+  const resolve = vi.fn().mockResolvedValue({ urls: ['http://localhost:4859/start'] })
+  const choose = vi.fn(async (urls: string[]) => urls[1])
+  const provider = new PreviewProvider(resolve, choose)
+  const view = { webview: { html: '', options: {}, postMessage: vi.fn() }, onDidDispose: vi.fn() }
+  await provider.resolveWebviewView(view as any)
+  await provider.show(project, path.join(root, 'pages/start.md'))
+  const original = view.webview.html
+  resolve.mockResolvedValue({ urls: ['http://localhost:4859/first', 'http://localhost:4859/second'] })
+  await provider.show(project, path.join(root, 'pages/multiple.md'))
+  expect(choose).not.toHaveBeenCalled()
+  expect(view.webview.html).toBe(original)
+  expect(view.webview.postMessage).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining('multiple routes') }))
+  await provider.show(project, path.join(root, 'pages/multiple.md'), true)
+  expect(view.webview.html).toContain('/second')
+  resolve.mockResolvedValue({ urls: [], message: 'Dynamic parameters required' })
+  const previous = view.webview.html
+  await provider.show(project, path.join(root, 'pages/[slug].md'))
+  expect(view.webview.html).toBe(previous)
+  expect(view.webview.postMessage).toHaveBeenLastCalledWith({ type: 'valaxy:preview-status', message: 'Dynamic parameters required' })
+  await provider.show({ ...project, root: `${root}-other` })
+  resolve.mockResolvedValue({ urls: [], message: 'No route in original project' })
+  await provider.show(project)
+  expect(view.webview.html).toContain('No route in original project')
+  const onDispose = view.onDidDispose.mock.calls[0][0]
+  onDispose()
+  const reopened = { webview: { html: '', options: {} }, onDidDispose: vi.fn() }
+  await provider.resolveWebviewView(reopened as any)
+  expect(reopened.webview.html).toContain('No route in original project')
+  ctx.dispose()
+})
+
+it('uses the complete forwarded URL and discards stale route responses', async () => {
+  const root = await folder('blog')
+  const ctx = new Context(() => {})
+  await ctx.refresh()
+  state.forward = url => `${url.replace('http://localhost:4859/', 'https://forward.example/proxy/4859/')}?forwarded=1`
+  let finish!: (result: { urls: string[] }) => void
+  const resolve = vi.fn().mockImplementationOnce(() => new Promise((done) => {
+    finish = done
+  })).mockResolvedValueOnce({ urls: ['http://localhost:4859/blog/latest'] })
+  const provider = new PreviewProvider(resolve)
+  const view = { webview: { html: '', options: {} }, onDidDispose: vi.fn() }
+  await provider.resolveWebviewView(view as any)
+  const stale = provider.show(ctx.projects[0], path.join(root, 'pages/old.md'))
+  await provider.show(ctx.projects[0], path.join(root, 'pages/latest.md'))
+  finish({ urls: ['http://localhost:4859/blog/old'] })
+  await stale
+  expect(view.webview.html).toContain('https://forward.example/proxy/4859/blog/latest?forwarded=1')
+  expect(view.webview.html).not.toContain('/old')
   ctx.dispose()
 })
 

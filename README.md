@@ -15,7 +15,7 @@ Post discovery works without a running server. It recursively scans Markdown fil
 
 ## Commands and settings
 
-The command palette offers **Valaxy: Add a Post**, **Refresh Posts**, **Preview Refresh**, **Open Browser Preview**, and **Open Extension Settings**. Delete actions move posts to the trash and ask for confirmation by default.
+The command palette offers **Valaxy: Add a Post**, **Refresh Posts**, **Preview Refresh**, **Open Browser Preview**, **Open DevTools**, and **Open Extension Settings**. Delete actions move posts to the trash and ask for confirmation by default.
 
 Use **Add a Post** (or the **+** button in Valaxy Posts) to choose a blog in a multi-root workspace and enter a filename such as `hello-world` or `travel/hello-world`. The extension creates missing directories under that blog's `valaxy.postsFolder`, adds `.md` if needed, refreshes the list and opens the new file. Existing files are never overwritten; choose another name if one already exists.
 
@@ -40,7 +40,9 @@ Set these options in each blog folder's `.vscode/settings.json`:
 
 Set the URL or port to the address printed by your development server. Remote forwarding uses VS Code's `asExternalUri`. Automatic port discovery is not implemented.
 
-Preview maps conventional `pages/**/*.md` routes, including nested paths, dot nesting (`hello.world.md` → `hello/world`), `index.md` and encoded filenames. Custom router hooks, dynamic routes, and posts outside `pages` cannot be inferred reliably: navigate in the preview/browser for those cases. Preview uses a regular iframe, without depending on a Valaxy-specific `postMessage` bridge. If the server is stopped, start it and refresh the view; use the browser command when iframe embedding is unavailable.
+When the running Valaxy server advertises the public editor protocol, preview uses its actual resolved routes, including custom router hooks, draft/hidden articles, and configured content directories outside `pages`. Multiple static routes can be selected with **Preview Refresh** or **Open Browser Preview**. Dynamic parameters cannot be guessed: the existing preview stays visible with an explanation, and the browser command offers manual site navigation. Workspace identity and base paths are checked before using the server.
+
+Older or unavailable servers retain conventional `pages/**/*.md` preview, including nested paths, dot nesting (`hello.world.md` → `hello/world`), `index.md` and encoded filenames. Preview uses a regular iframe without a Valaxy client message bridge. Start the server and refresh when unavailable; use the browser command when a proxy or page blocks embedding.
 
 ## Relationship to DevTools
 
@@ -52,7 +54,7 @@ Both tools can list posts and help with editing, but serve different entry point
 | Lightweight offline post list | Frontmatter, configuration, collections and addon panels |
 | Preview and browser/settings shortcuts | Visual editing powered by the running development server |
 
-Keep visual configuration and album/collection editors in DevTools. A future optional **Open DevTools** command should use an advertised public URL and its supported authentication flow. This extension does not call internal RPC methods, copy authentication tokens, or embed a second configuration editor. See [the roadmap](docs/roadmap.md) for the integration boundary.
+Keep visual configuration and album/collection editors in DevTools. **Open DevTools** discovers the selected project's public URL and opens it in the external browser. On first connection, enter the one-time code shown in the development server's terminal. The browser owns authentication; the extension does not read codes/tokens or call private RPC. Disabled DevTools, older servers and unavailable servers produce an explanatory message. Native article navigation and creation still work offline and with `devtools: false`. See [the protocol](https://valaxy.site/dev/editor-integration) and [roadmap](docs/roadmap.md).
 
 ## Development and verification
 
@@ -66,7 +68,16 @@ pnpm test:integration
 
 `pnpm check` runs lint, type checking, unit tests and VSIX packaging. `pnpm test:integration` starts the pinned **Valaxy 1.0.0-rc.12** fixture and launches a real VS Code Extension Development Host. On Linux use `xvfb-run -a pnpm test:integration`. `VSCODE_VERSION` selects a host version (CI checks 1.85.0 and stable); `VSCODE_EXECUTABLE_PATH` can select an existing executable. The test server uses port 4867, which must be free.
 
-The Valaxy fixture is a development-only workspace dependency. It is excluded from the extension bundle and VSIX. Tests cover multi-root activation, recursive discovery, missing folders, malformed frontmatter, scoped settings, preview URL generation, and the real development server. Custom router behavior and Remote SSH/Containers remain manual validation items.
+The Valaxy fixture is a development-only workspace dependency, excluded from the extension bundle and VSIX. Tests cover multi-root activation, filesystem operations, capability validation, preview selection and encoding, forwarding, stale responses and refresh coalescing. [Remote SSH/Dev Containers validation and performance results](docs/remote-validation.md) record the tested environments and limits.
+
+To run the same Extension Development Host suite against a local Valaxy build that implements the public protocol:
+
+```bash
+VALAXY_CLI_PATH=/absolute/path/to/valaxy/packages/valaxy/bin/valaxy.mjs \
+VALAXY_TEST_CAPABILITIES=1 pnpm test:integration
+```
+
+This additionally checks a custom hook, an author-only article outside `pages`, multiple routes, dynamic-route handling and disabled DevTools. CI runs both host versions against an immutable commit from [the companion framework PR](https://github.com/YunYouJun/valaxy/pull/741). Without these variables, the pinned rc.12 fixture verifies legacy fallback. Switch the CI pin to a released framework version after that PR ships.
 
 ## Release
 

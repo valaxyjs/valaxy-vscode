@@ -2,7 +2,10 @@ const assert = require('node:assert/strict')
 const { Buffer } = require('node:buffer')
 const { readFile } = require('node:fs/promises')
 const path = require('node:path')
+const process = require('node:process')
 const vscode = require('vscode')
+
+const capabilities = process.env.VALAXY_TEST_CAPABILITIES === '1'
 
 async function waitForCount(expected) {
   for (let attempt = 0; attempt < 50; attempt++) {
@@ -24,11 +27,46 @@ exports.run = async function () {
   await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(file))
   await vscode.commands.executeCommand('valaxy-preview.focus')
   const url = await vscode.commands.executeCommand('valaxy.preview-refresh')
-  assert.equal(url, 'http://localhost:4867/blog/posts/nested/hello')
+  assert.equal(url, `http://localhost:4867/blog/${capabilities ? 'stories/hello' : 'posts/nested/hello'}`)
   assert.equal((await fetch(url)).status, 200)
   const dotted = vscode.Uri.file(path.join(__dirname, 'fixtures/blog/pages/posts/hello.world.md'))
   await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(dotted))
   assert.equal(await vscode.commands.executeCommand('valaxy.preview-refresh'), 'http://localhost:4867/blog/posts/hello/world')
+  if (capabilities) {
+    const originalPick = vscode.window.showQuickPick
+    const originalMessage = vscode.window.showInformationMessage
+    const originalOpen = vscode.env.openExternal
+    try {
+      const privateFile = vscode.Uri.file(path.join(__dirname, 'fixtures/blog/content/author note.md'))
+      await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(privateFile))
+      assert.equal(await vscode.commands.executeCommand('valaxy.preview-refresh'), 'http://localhost:4867/blog/author/author%20note')
+      let opened
+      vscode.env.openExternal = async (uri) => {
+        opened = uri.toString()
+        return true
+      }
+      await vscode.commands.executeCommand('valaxy.openBrowser')
+      assert.equal(opened, (await vscode.env.asExternalUri(vscode.Uri.parse('http://localhost:4867/blog/author/author%20note'))).toString())
+      const multiple = vscode.Uri.file(path.join(__dirname, 'fixtures/blog/content/multiple.md'))
+      await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(multiple))
+      vscode.window.showQuickPick = async items => items.find(item => typeof item === 'string' && item.endsWith('/alternate'))
+      assert.equal(await vscode.commands.executeCommand('valaxy.preview-refresh'), 'http://localhost:4867/blog/alternate')
+      const dynamic = vscode.Uri.file(path.join(__dirname, 'fixtures/blog/pages/[slug].md'))
+      await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(dynamic))
+      assert.equal(await vscode.commands.executeCommand('valaxy.preview-refresh'), undefined)
+      let message
+      vscode.window.showInformationMessage = async (value) => {
+        message = value
+      }
+      await vscode.commands.executeCommand('valaxy.openDevtools')
+      assert.match(message, /DevTools is disabled/)
+    }
+    finally {
+      vscode.window.showQuickPick = originalPick
+      vscode.window.showInformationMessage = originalMessage
+      vscode.env.openExternal = originalOpen
+    }
+  }
   const created = vscode.Uri.file(path.join(__dirname, 'fixtures/empty/pages/posts/deep/new.md'))
   const originalQuickPick = vscode.window.showQuickPick
   const originalInputBox = vscode.window.showInputBox
@@ -54,5 +92,5 @@ exports.run = async function () {
     vscode.window.showInputBox = originalInputBox
     await vscode.workspace.fs.delete(vscode.Uri.file(path.join(__dirname, 'fixtures/empty/pages')), { recursive: true }).then(() => {}, () => {})
   }
-  console.warn('PASS: real Valaxy 1.0.0-rc.12 server, multi-root activation, native post creation, recursive posts, missing directory, preview and settings')
+  console.warn(`PASS: real Valaxy server (${capabilities ? 'public editor protocol' : 'legacy fallback'}), multi-root activation, native post creation, recursive posts, missing directory, preview and settings`)
 }

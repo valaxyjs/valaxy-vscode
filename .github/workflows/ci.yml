@@ -46,3 +46,36 @@ jobs:
       - run: xvfb-run -a pnpm test:integration
         env:
           VSCODE_VERSION: ${{ matrix.vscode }}
+  editor-protocol:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        vscode: [1.85.0, stable]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out the public protocol implementation
+        uses: actions/checkout@v4
+        with:
+          repository: YunYouJun/valaxy
+          # Update to a released framework version once the companion PR ships.
+          ref: 7491fa41d6323e458870c337523478c05a413d1d
+          path: .valaxy-framework
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: .valaxy-framework/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the framework
+        working-directory: .valaxy-framework
+        run: pnpm install --frozen-lockfile && pnpm run build
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
+      - run: pnpm install --frozen-lockfile
+      - run: xvfb-run -a pnpm test:integration
+        env:
+          VSCODE_VERSION: ${{ matrix.vscode }}
+          VALAXY_TEST_CAPABILITIES: '1'
+          VALAXY_CLI_PATH: ${{ github.workspace }}/.valaxy-framework/packages/valaxy/bin/valaxy.mjs

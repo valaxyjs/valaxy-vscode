@@ -8,13 +8,31 @@ export class Context {
   readonly onDidChange = this.changed.event
   projects: Project[] = []
   posts: Post[] = []
-  private generation = 0
+  private refreshing?: Promise<number>
+  private refreshRequested = false
   private disposed = false
 
   constructor(private report: (message: string) => void) {}
 
-  async refresh() {
-    const generation = ++this.generation
+  refresh(): Promise<number> {
+    if (this.disposed)
+      return Promise.resolve(this.posts.length)
+    this.refreshRequested = true
+    this.refreshing ||= this.drainRefreshes().finally(() => {
+      this.refreshing = undefined
+    })
+    return this.refreshing
+  }
+
+  private async drainRefreshes() {
+    do {
+      this.refreshRequested = false
+      await this.scan()
+    } while (this.refreshRequested && !this.disposed)
+    return this.posts.length
+  }
+
+  private async scan() {
     const projects: Project[] = []
     for (const folder of workspace.workspaceFolders ?? []) {
       try {
@@ -27,12 +45,11 @@ export class Context {
       }
     }
     const posts = (await Promise.all(projects.map(project => scanPosts(project, this.report)))).flat()
-    if (!this.disposed && generation === this.generation) {
+    if (!this.disposed && !this.refreshRequested) {
       this.projects = projects
       this.posts = posts
       this.changed.fire()
     }
-    return this.posts.length
   }
 
   projectFor(filePath?: string) {
@@ -45,7 +62,6 @@ export class Context {
 
   dispose() {
     this.disposed = true
-    this.generation++
     this.changed.dispose()
   }
 }

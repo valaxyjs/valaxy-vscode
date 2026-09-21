@@ -7,7 +7,8 @@ const { runTests } = require('@vscode/test-electron')
 
 const root = path.resolve(__dirname, '../..')
 const fixture = path.join(__dirname, 'fixtures/blog')
-const cli = path.join(fixture, 'node_modules/valaxy/bin/valaxy.mjs')
+const cli = process.env.VALAXY_CLI_PATH || path.join(fixture, 'node_modules/valaxy/bin/valaxy.mjs')
+const capabilities = process.env.VALAXY_TEST_CAPABILITIES === '1'
 const server = spawn(process.execPath, [cli, '--port', '4867'], {
   cwd: fixture,
   env: { ...process.env, NO_COLOR: '1', BROWSER: 'none' },
@@ -26,7 +27,7 @@ async function ready() {
     if (server.exitCode !== null)
       throw new Error(`Valaxy exited: ${log}`)
     try {
-      const response = await fetch('http://localhost:4867/blog/posts/nested/hello')
+      const response = await fetch(`http://localhost:4867/blog/${capabilities ? 'stories/hello' : 'posts/nested/hello'}`)
       if (response.ok) {
         assert.match(await response.text(), /@vite\/client/)
         // Request the actual Markdown module, not just Vite's HTML fallback.
@@ -35,7 +36,11 @@ async function ready() {
         assert.match(await markdown.text(), /Nested compatibility post/)
         const routes = await readFile(path.join(fixture, '.valaxy/route-map.d.ts'), 'utf8')
         assert.match(routes, /posts\/hello\/world/)
-        assert.match(routes, /posts\/nested\/hello/)
+        assert.match(routes, capabilities ? /stories\/hello/ : /posts\/nested\/hello/)
+        if (capabilities) {
+          const discovery = await fetch('http://localhost:4867/blog/__valaxy__/capabilities', { headers: { 'X-Valaxy-Client': '1' } })
+          assert.equal((await discovery.json()).protocolVersion, 1)
+        }
         return
       }
     }
